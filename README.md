@@ -155,4 +155,4 @@ Just resubmit the jobscript and directly connect via **“Connect to Tunnel”**
 
 ---
 
-✅ You’re now ready to use **Isambard-AI** efficiently!
+Happy Coding!

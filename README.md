@@ -1,57 +1,120 @@
-# Isambard-AI
-Setup Isambard-AI access
+# Isambard-AI Setup Guide <img src="images/brics.png" alt="BRICS Logo" width="50" height="50">
 
-## First thing First
-1. Ask your supervisor to give access to ISAMBARD-AI Supercluster.
-2. Your supervisor will send you an invitation via your manchester student EmailID and you have to "Accept" the invitation.
-3. Then go to this link [https://portal.isambard.ac.uk/]
-4. When prompted to choose access request type, choose: **University Login (MyAccessID)** and use your Manchester EmailID and password to gain access.
-5. You will  see something like this when you have access to a project: ![Login Page](/images/login_portal.png) 
+This document provides step-by-step instructions to set up and use **Isambard-AI**.
 
-## Connect via Terminal
-[BriCS facilities](https://docs.isambard.ac.uk/specs/) provides a command line tool called [Clifton](https://github.com/isambard-sc/clifton) for obtaining SSH certificates and configuring your SSH client to use these. The certificates are valid for 12 hours.
-1. For Apple Silicon:
+---
+
+## 📑 Table of Contents
+- [🚀 First Things First](#-first-things-first)  
+- [💻 Connect via Terminal](#-connect-via-terminal)  
+  - [1. Install Clifton](#1-install-clifton)  
+  - [2. Generate an SSH Key](#2-generate-an-ssh-key)  
+  - [3. Authenticate with Clifton](#3-authenticate-with-clifton)  
+  - [4. Configure & Connect](#4-configure--connect)  
+- [🖥️ Connect VS Code via Remote Tunnel](#️-connect-vs-code-via-remote-tunnel)  
+  - [1. Install VS Code CLI on Login Node](#1-install-vs-code-cli-on-login-node)  
+  - [2. Submit a Jobscript](#2-submit-a-jobscript)  
+  - [3. Connect via GitHub](#3-connect-via-github)  
+- [🛠️ Final Setup Steps](#️-final-setup-steps)
+
+---
+
+## 🚀 First Things First
+
+1. Ask your supervisor for access to the **ISAMBARD-AI Supercluster**.  
+2. Your supervisor will send an invitation to your **Manchester student email**. Accept the invitation.  
+3. Go to the [Isambard Portal](https://portal.isambard.ac.uk/).  
+4. When prompted to choose an access request type, select:  
+   **University Login (MyAccessID)** → login with your Manchester email and password.  
+5. Once access is granted to a project, you should see something like this:  
+   ![Login Page](/images/login_portal.png)
+
+---
+
+## 💻 Connect via Terminal
+
+The [BriCS facilities](https://docs.isambard.ac.uk/specs/) provide a command-line tool called [Clifton](https://github.com/isambard-sc/clifton).  
+Clifton is used to obtain SSH certificates and configure your SSH client. Certificates are valid for **12 hours**.
+
+### 1. Install Clifton
+
+**Apple Silicon (macOS ARM64):**
 ```bash
 curl -L https://github.com/isambard-sc/clifton/releases/latest/download/clifton-macos-aarch64 -o clifton
 chmod u+x clifton
 sudo mv clifton /usr/local/bin/
 ```
-2. For Linux Distro (including WSL)
+
+**Linux (including WSL):**
 ```bash
 curl -L https://github.com/isambard-sc/clifton/releases/latest/download/clifton-linux-musl-x86_64 -o clifton
 chmod u+x clifton
 mkdir -p ~/.local/bin
 mv clifton ~/.local/bin/
 ```
-3. Then create a ssh key using [GitHub's Documentation](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent).
-[Note]: They only support modern SSH keys (i.e. RSA keys of 3072 bits or more, or Ed25519, or any other modern, post-2014 key type). They do not support DSA keys, or RSA keys of less than 3072 bits. Any key generated using a modern version of ssh-keygen should be fine, e.g. the private key must contain `-----BEGIN OPENSSH PRIVATE KEY-----`
-4. Next to Authenticate run `clifton auth --identity /path/to/ssh_key`
-5. This will redirect you to web browser and you have to again use **University Login (MyAccessID)** to authenticate access to login node.
-6. After successful login this will print something like this:
+
+---
+
+### 2. Generate an SSH Key
+Follow [GitHub’s documentation](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent).
+
+> **Note:** Only modern SSH keys are supported (e.g. RSA ≥ 3072 bits, Ed25519).  
+> Keys must include:  
+> ```
+> -----BEGIN OPENSSH PRIVATE KEY-----
+> ```
+
+---
+
+### 3. Authenticate with Clifton
+```bash
+clifton auth --identity /path/to/ssh_key
 ```
-Successfully authenticated as YOUR_EMAIL_ADDRESS (YOUR_SHORT_NAME) and downloaded SSH certificate for projects:
+
+- This will redirect you to a browser → login using **University Login (MyAccessID)**.
+- After successful authentication, you’ll see something like:
+
+```
+Successfully authenticated as YOUR_EMAIL (SHORT_NAME) and downloaded SSH certificate for projects:
  - PROJECT_NAME
 
 Certificate file written to ~/.ssh/id_ed25519-cert.pub
 Certificate valid for 11 hours and 59 minutes.
 You may now want to run `clifton ssh-config write` to configure your SSH config aliases.
 ```
-6. Then write the shh key to your local workspace using `clifton ssh-config write`
-7. Finally to connect to the login node run `ssh <PROJECT_ID>.aip2.isambard`.
 
-## Connect VSCode via Remote Tunnel
-1. Connect to a loging node and install VSCode:
-```shell
+---
+
+### 4. Configure & Connect
+1. Write the SSH key to your local config:
+   ```bash
+   clifton ssh-config write
+   ```
+2. Connect to the login node:
+   ```bash
+   ssh <PROJECT_ID>.aip2.isambard
+   ```
+
+---
+
+## 🖥️ Connect VS Code via Remote Tunnel
+
+### 1. Install VS Code CLI on Login Node
+```bash
 curl --location --output vscode_cli.tar.gz "https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-arm64"
 mkdir -p ~/opt/vscode_cli
 tar -C ~/opt/vscode_cli --extract --verbose --file vscode_cli.tar.gz
 ```
-2. Submit a jobscript with the following details:
-##### vscode_code_tunnel.sh
-```shell
+
+---
+
+### 2. Submit a Jobscript
+
+Create a file named **`vscode_code_tunnel.sh`**:
+```bash
 #!/bin/bash
 #SBATCH --job-name=code_tunnel
-#SBATCH --gpus=1            # this also allocates 72 CPU cores and 115GB memory
+#SBATCH --gpus=1            # Allocates 72 CPU cores + 115GB memory
 #SBATCH --time=1:00:00
 #SBATCH --output=code_tunnel_%j.out
 
@@ -59,13 +122,37 @@ module load brics/nano
 # Start named VS Code tunnel for remote connection to compute node
 ~/opt/vscode_cli/code tunnel --name "i-ai_compute"
 ```
-3. Then run it via sbatch like you used to work with CSF Cluster: `sbatch vscode_code_tunnel.sh`
-4. Then use this link to setup remote connection via GitHub [https://github.com/login/device].
-5. For the first time, it will ask you an "eight digit code" which you can find it inside your output file of the jobscript. The file will be named something like this `vs_code_tunnel_1182526.out`.
-6. Once done open your VSCode, click on the bottom left corner and then use "Connect to Tunnel", then "GitHub" and then you are ready to go!
-7. For subsequent Remote Tunnel connection, just submit the jobscript and you can directly connect you VSCode via "Connect to Tunnel" button.
 
-## Some Final Steps:
-1. Install mniforge so that pytorch can be run on GPU. Follow the steps provided in this link to [install python environment](https://docs.isambard.ac.uk/user-documentation/guides/python/#conda-installing-and-using-miniforge).
-2. Take help of the following tutorial to setup a [Distributed Environment for training in PyTorch](https://docs.isambard.ac.uk/user-documentation/tutorials/distributed-training/)
-3. Freqently visit the following link to familiarize yourself with the [SLURM Management System of Isambard](https://docs.isambard.ac.uk/user-documentation/guides/slurm/). (PS its almost similar to our new CSF SLURM system)
+Run it:
+```bash
+sbatch vscode_code_tunnel.sh
+```
+
+---
+
+### 3. Connect via GitHub
+
+1. Open [GitHub Device Login](https://github.com/login/device).  
+2. For the first run, you’ll be prompted for an **8-digit code**, which can be found in the jobscript output file, e.g. `code_tunnel_1182526.out`.  
+3. Open VS Code → bottom-left corner → **Connect to Tunnel** → choose **GitHub**.  
+
+> ✅ For subsequent connections:  
+Just resubmit the jobscript and directly connect via **“Connect to Tunnel”** in VS Code.
+
+---
+
+## 🛠️ Final Setup Steps
+
+1. Install **Miniforge** to enable PyTorch on GPU:  
+   [Guide: Installing Python Environment](https://docs.isambard.ac.uk/user-documentation/guides/python/#conda-installing-and-using-miniforge).
+   
+2. Follow this tutorial for setting up a **Distributed Training Environment in PyTorch**:  
+   [Distributed Training Guide](https://docs.isambard.ac.uk/user-documentation/tutorials/distributed-training/).
+
+3. Familiarize yourself with the **SLURM Workload Manager** used by Isambard:  
+   [SLURM Documentation](https://docs.isambard.ac.uk/user-documentation/guides/slurm/).  
+   > (It’s very similar to the CSF SLURM system.)
+
+---
+
+✅ You’re now ready to use **Isambard-AI** efficiently!

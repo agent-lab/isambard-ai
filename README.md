@@ -139,6 +139,8 @@ sbatch vscode_code_tunnel.sh
 > ✅ For subsequent connections:  
 Just resubmit the jobscript and directly connect via **“Connect to Tunnel”** in VS Code.
 
+> **Note:** If you update VS Code locally, redo **Step 1** (Install VS Code CLI on Login Node) to avoid version mismatch errors.
+
 ---
 
 ## 🛠️ Final Setup Steps
